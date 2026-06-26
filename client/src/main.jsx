@@ -11,7 +11,10 @@ const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <ClerkProvider
-      appearance={{ theme: shadcn }}
+      appearance={{
+        theme: shadcn,
+        cssLayerName: "clerk"
+      }}
       afterSignOutUrl="/"
       publishableKey={PUBLISHABLE_KEY}
     >
