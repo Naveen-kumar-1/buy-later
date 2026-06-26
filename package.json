@@ -6,6 +6,6 @@
     "server"
   ],
   "scripts": {
-    "postinstall": "npm run postinstall --prefix server"
+    "postinstall": "npm run postinstall --prefix server || echo 'Prisma not installed, skipping client generation'"
   }
 }
