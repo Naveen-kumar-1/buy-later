@@ -9,20 +9,20 @@ export const getProducts = async (req, res) => {
   }
 
   try {
-    const userExists = await prisma.user.findUnique({
-      where: { id: clerkUserId }
+    const userWithProducts = await prisma.user.findUnique({
+      where: { id: clerkUserId },
+      include: {
+        products: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
     });
 
-    if (!userExists) {
+    if (!userWithProducts) {
       return res.status(404).json({ error: "User not found in database" });
     }
 
-    const products = await prisma.product.findMany({
-      where: { clerkUserId },
-      orderBy: { createdAt: 'desc' }
-    });
-
-    return res.status(200).json({ success: true, products });
+    return res.status(200).json({ success: true, products: userWithProducts.products });
   } catch (err) {
     console.error("Error fetching products:", err.message);
     return res.status(500).json({ error: "Failed to fetch products" });
@@ -39,17 +39,6 @@ export const saveProduct = async (req, res) => {
   }
 
   try {
-    // 1. Verify user exists in database
-    const userExists = await prisma.user.findUnique({
-      where: { id: clerkUserId }
-    });
-
-    if (!userExists) {
-      return res.status(404).json({ 
-        error: "User not found in database. Make sure you are signed up using Clerk and synced to the backend." 
-      });
-    }
-
     const priceVal = price !== undefined && price !== null ? Number(price) : null;
     const linkVal = link || url || null;
     const dateVal = (orderDate || expectedDate) ? new Date(orderDate || expectedDate) : null;
@@ -112,6 +101,11 @@ export const saveProduct = async (req, res) => {
     }
 
   } catch (err) {
+    if (err.code === 'P2003') { // Foreign key constraint failed (e.g. user does not exist)
+      return res.status(404).json({ 
+        error: "User not found in database. Make sure you are signed up using Clerk and synced to the backend." 
+      });
+    }
     console.error("Error in saveProduct controller:", err.message);
     return res.status(500).json({ error: "Internal server database error when saving product" });
   }
@@ -127,14 +121,6 @@ export const deleteProduct = async (req, res) => {
   }
 
   try {
-    const userExists = await prisma.user.findUnique({
-      where: { id: clerkUserId }
-    });
-
-    if (!userExists) {
-      return res.status(404).json({ error: "User not found in database" });
-    }
-
     const existingProduct = await prisma.product.findUnique({
       where: { id }
     });
