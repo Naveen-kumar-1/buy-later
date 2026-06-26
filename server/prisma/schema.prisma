@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String    @id // Clerk User ID
+  email     String    @unique
+  firstName String?
+  lastName  String?
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id          String    @id @default(uuid())
+  clerkUserId String
+  user        User      @relation(fields: [clerkUserId], references: [id])
+  name        String
+  price       Float?
+  link        String?
+  platform    String?
+  status      String    @default("saved")
+  orderDate   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
